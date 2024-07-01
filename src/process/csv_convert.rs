@@ -1,10 +1,9 @@
 use std::fs;
 
+use crate::cli::OutputFormat;
 use csv::Reader;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-
-use crate::opts::OutputFormat;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Player {
