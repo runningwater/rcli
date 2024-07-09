@@ -83,3 +83,20 @@ cargo nextest 是一个 Rust 增强测试工具。
 ```bash
 cargo install cargo-nextest --locked
 ```
+
+## CLI 项目
+
+### 处理 CSV
+
+### 生成随机密码
+
+### 文本签名
+
+- 文本哈希/签名的意义
+- Hash 库： blake3 (keyed hash)
+- 非对称加密库： ed25519_dalek
+- Trait: Signer / Verifier
+- 创建 CLI 对输入文本哈希/签名
+  - rcli text sign -key sk.pem
+  - rcli text verify -key pk.pem
+  - rcli text generate-key
