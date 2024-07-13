@@ -7,12 +7,14 @@ use self::genpass::GenPassOpts;
 pub use self::{
     base64::{Base64Format, Base64SubCommand},
     csv::OutputFormat,
+    http::HttpSubCommand,
     text::{TextSignFormat, TextSubCommand},
 };
 
 mod base64;
 mod csv;
 mod genpass;
+mod http;
 mod text;
 
 #[derive(Debug, Parser)]
@@ -32,6 +34,8 @@ pub enum SubCommand {
     Base64(Base64SubCommand),
     #[command(subcommand, about = "Message Sign, or Verify")]
     Text(TextSubCommand),
+    #[command(subcommand, about = "Serve a directory over HTTP")]
+    Http(HttpSubCommand),
 }
 
 pub fn verify_file(filename: &str) -> Result<String, &'static str> {
