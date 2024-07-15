@@ -2,6 +2,8 @@ use std::path::{Path, PathBuf};
 
 use clap::Parser;
 
+use crate::CmdExecutor;
+
 use self::csv::CsvOpts;
 use self::genpass::GenPassOpts;
 pub use self::{
@@ -54,6 +56,19 @@ pub fn verify_path(path: &str) -> Result<PathBuf, &'static str> {
         Err("Path does not exist or is not a directory")
     }
 }
+
+impl CmdExecutor for SubCommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            SubCommand::Csv(opts) => opts.execute().await,
+            SubCommand::GenPass(opts) => opts.execute().await,
+            SubCommand::Base64(cmd) => cmd.execute().await,
+            SubCommand::Text(cmd) => cmd.execute().await,
+            SubCommand::Http(cmd) => cmd.execute().await,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

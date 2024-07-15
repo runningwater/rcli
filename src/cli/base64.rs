@@ -4,6 +4,8 @@ use std::str::FromStr;
 use anyhow::Ok;
 use clap::Parser;
 
+use crate::{process_decode, process_encode, CmdExecutor};
+
 use super::verify_file;
 
 #[derive(Debug, Parser)]
@@ -64,5 +66,30 @@ impl From<Base64Format> for &'static str {
             Base64Format::Standard => "standard",
             Base64Format::UrlSafe => "urlsafe",
         }
+    }
+}
+
+impl CmdExecutor for Base64SubCommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            Base64SubCommand::Encode(opts) => opts.execute().await,
+            Base64SubCommand::Decode(opts) => opts.execute().await,
+        }
+    }
+}
+impl CmdExecutor for Base64EncodeOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let encoded = process_encode(&self.input, self.format)?;
+        println!("{}", encoded);
+        Ok(())
+    }
+}
+impl CmdExecutor for Base64DecodeOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let decoded = process_decode(&self.input, self.format)?;
+        // TODO: decoded data might not be string (but for this example, we assume it is)
+        let decoded = String::from_utf8(decoded)?;
+        println!("{}", decoded);
+        Ok(())
     }
 }
