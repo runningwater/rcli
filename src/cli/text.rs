@@ -3,13 +3,14 @@ use std::fs;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use clap::Parser;
-
 use crate::{process_text_generate, process_text_sign, process_text_verify, CmdExecutor};
+use clap::Parser;
+use enum_dispatch::enum_dispatch;
 
 use super::{verify_file, verify_path};
 
 #[derive(Debug, Parser)]
+#[enum_dispatch(CmdExecutor)]
 pub enum TextSubCommand {
     #[command(name = "sign", about = "Sign a message with a private/shared key")]
     Sign(TextSignOpts),
@@ -85,15 +86,7 @@ impl Display for TextSignFormat {
         write!(f, "{}", Into::<&'static str>::into(*self))
     }
 }
-impl CmdExecutor for TextSubCommand {
-    async fn execute(self) -> anyhow::Result<()> {
-        match self {
-            TextSubCommand::Sign(opts) => opts.execute().await,
-            TextSubCommand::Verify(opts) => opts.execute().await,
-            TextSubCommand::Generate(opts) => opts.execute().await,
-        }
-    }
-}
+
 impl CmdExecutor for TextSignOpts {
     async fn execute(self) -> anyhow::Result<()> {
         let signed = process_text_sign(&self.input, &self.key, self.format)?;

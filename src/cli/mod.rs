@@ -1,23 +1,18 @@
-use std::path::{Path, PathBuf};
-
-use clap::Parser;
-
-use crate::CmdExecutor;
-
-use self::csv::CsvOpts;
-use self::genpass::GenPassOpts;
-pub use self::{
-    base64::{Base64Format, Base64SubCommand},
-    csv::OutputFormat,
-    http::HttpSubCommand,
-    text::{TextSignFormat, TextSubCommand},
-};
-
 mod base64;
 mod csv;
 mod genpass;
 mod http;
 mod text;
+
+pub use self::base64::{Base64DecodeOpts, Base64EncodeOpts, Base64Format, Base64SubCommand};
+use clap::Parser;
+pub use csv::*;
+pub use genpass::*;
+pub use http::*;
+use std::path::{Path, PathBuf};
+pub use text::*;
+
+use enum_dispatch::enum_dispatch;
 
 #[derive(Debug, Parser)]
 #[command(name = "rcli", version, author, about = "Some useful tools", long_about = None)]
@@ -27,6 +22,7 @@ pub struct Opts {
 }
 
 #[derive(Debug, Parser)]
+#[enum_dispatch(CmdExecutor)]
 pub enum SubCommand {
     #[command(name = "csv", about = "Show CSV, or convert CSV to other formats")]
     Csv(CsvOpts),
@@ -54,18 +50,6 @@ pub fn verify_path(path: &str) -> Result<PathBuf, &'static str> {
         Ok(path.into())
     } else {
         Err("Path does not exist or is not a directory")
-    }
-}
-
-impl CmdExecutor for SubCommand {
-    async fn execute(self) -> anyhow::Result<()> {
-        match self {
-            SubCommand::Csv(opts) => opts.execute().await,
-            SubCommand::GenPass(opts) => opts.execute().await,
-            SubCommand::Base64(cmd) => cmd.execute().await,
-            SubCommand::Text(cmd) => cmd.execute().await,
-            SubCommand::Http(cmd) => cmd.execute().await,
-        }
     }
 }
 
