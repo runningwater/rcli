@@ -6,6 +6,7 @@ use axum::Router;
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
+use tower_http::services::ServeDir;
 use tracing::{info, warn};
 
 #[derive(Debug)]
@@ -16,9 +17,18 @@ struct HttpServeState {
 pub async fn process_http_serve(path: PathBuf, port: u16) -> Result<()> {
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     info!("Serving: {:?} on  {}", path.as_path(), addr);
-    let state = HttpServeState { path };
+    let state = HttpServeState { path: path.clone() };
+    let service_dir = ServeDir::new(path)
+        .append_index_html_on_directories(true)
+        .precompressed_gzip()
+        .precompressed_br()
+        .precompressed_zstd()
+        .precompressed_deflate();
+
     // axum router
     let router = Router::new()
+        // .route_service("/tower", service_dir)
+        .nest_service("/tower", service_dir)
         .route("/*path", get(file_handler))
         .with_state(Arc::new(state));
 
@@ -51,5 +61,20 @@ async fn file_handler(
                 (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_file_handler() {
+        let state = Arc::new(HttpServeState {
+            path: PathBuf::from("fixtures"),
+        });
+        let (status, content) = file_handler(State(state), Path("index.html".to_string())).await;
+        assert_eq!(status, StatusCode::OK);
+        assert!(content.contains("hello"));
     }
 }

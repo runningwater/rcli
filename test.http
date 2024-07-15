@@ -1,0 +1,9 @@
+### GET request to example server
+GET http://localhost:8080/Cargo.toml
+
+###
+
+### Test static file with tower-http
+GET http://localhost:8080/tower/fixtures/b64.txt HTTP/2 (Prior Knowledge)
+Accept-Encoding: gzip;deflate
+###
